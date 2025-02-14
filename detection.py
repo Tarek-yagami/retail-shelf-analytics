@@ -1,5 +1,6 @@
 import cv2
 import matplotlib.pyplot as plt
+from ultralytics import YOLO
 
 # Charger le modèle entraîné
 model = YOLO("runs/train/exp/weights/best.pt")  # Vérifie le chemin exact du modèle sauvegardé
