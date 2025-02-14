@@ -1,0 +1,14 @@
+path: D:/ESI/2CS/Algiers Up/Roboflow_test/AUP_merchandising.v2i.yolov8/
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 35
+names: ['7up_plastique', 'arwa_canette', 'arwa_plastique', 'belgaid_plastique', 'bifa_carton', 'candia_carton', 'el_arabi_plastique', 'fanta_plastique', 'hamoud_plastique', 'ifri_plastique', 'ifruit', 'ifruit_carton', 'ifruit_plastique', 'metidja_plastique', 'miranda_plastique', 'ngaous_carton', 'ngaous_plastique', 'obei_carton', 'orangina_plastique', 'pepsi_plastique', 'ramy_canette', 'ramy_carton', 'ramy_plastique', 'rani_plastique', 'rouiba_carton', 'rouiba_plastique', 'skander_plastique', 'sommam_carton', 'sprite_canette', 'sprite_plastique', 'tassilo_carton', 'tastetea_plastique', 'tazej_plastique', 'tchina_plastique', 'toudja_carton']
+
+roboflow:
+  workspace: aup-rjpgb
+  project: aup_merchandising
+  version: 2
+  license: Private
+  url: https://app.roboflow.com/aup-rjpgb/aup_merchandising/2
