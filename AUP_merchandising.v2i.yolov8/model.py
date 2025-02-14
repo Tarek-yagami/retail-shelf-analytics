@@ -31,7 +31,27 @@ model = YOLO("C:/Users/tarek/runs/detect/train5/weights/best.pt")
 # Fonction pour tester le modèle sur une image
 def detect_products(image_path):
     results = model(image_path, save=True, conf=0.5)
-    return results
+    
+    # Dictionnaire pour compter le nombre d'occurrences par catégorie
+    product_counts = {}
+
+    for result in results:
+        for box in result.boxes:
+            class_id = int(box.cls[0].item())  # Récupérer l'ID de la classe
+            class_name = model.names[class_id]  # Récupérer le nom de la classe
+            
+            # Incrémenter le compteur de la catégorie
+            if class_name in product_counts:
+                product_counts[class_name] += 1
+            else:
+                product_counts[class_name] = 1
+
+    return product_counts  # Retourne un dictionnaire avec le nombre de produits par catégorie
+
+# Exemple d'utilisation sur une image de test
+resultats = detect_products(r"D:\ESI\2CS\Algiers Up\Roboflow_test\AUP_merchandising.v2i.yolov8\valid\images\image_test.jpg")
+print(resultats)  # Afficher le nombre de produits par catégorie
+
 
 
 # Exemple d'utilisation sur une image de test
