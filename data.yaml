@@ -1,0 +1,6 @@
+
+train: C:\Users\DELL\ML\AUP-2025\data\images\train
+val: C:\Users\DELL\ML\AUP-2025\data\images\val
+nc: 1
+names: ['ramy_product']
+    
