@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Detection</title>
+</head>
+<body>
+    <h2>Détection de produits</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <button onclick="analyzeImage()">Analyser l’image</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function analyzeImage() {
+            const fileInput = document.getElementById('imageInput');
+            const resultDisplay = document.getElementById('result');
+            
+            if (fileInput.files.length === 0) {
+                alert('Veuillez sélectionner une image');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                resultDisplay.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDisplay.textContent = 'Erreur lors de la détection';
+            }
+        }
+    </script>
+</body>
+</html>
