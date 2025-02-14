@@ -9,15 +9,19 @@ from torch.utils.data import Dataset
 import random
 from sklearn.model_selection import train_test_split
 import unicodedata
+from itertools import chain
+
 
 def setup_directory_structure(base_dir="data"):
-    """Crée la structure de répertoires nécessaire pour l'entraînement"""
+    """Creates the necessary directory structure including augmentation directories"""
     dirs = [
         f"{base_dir}/images/train",
         f"{base_dir}/images/val",
         f"{base_dir}/labels/train",
         f"{base_dir}/labels/val",
-        f"{base_dir}/products_reference"
+        f"{base_dir}/products_reference",
+        f"{base_dir}/augmented/products",  # New directory for augmented products
+        f"{base_dir}/augmented/shelves"    # New directory for augmented shelves
     ]
     for d in dirs:
         os.makedirs(d, exist_ok=True)
@@ -30,14 +34,20 @@ def copy_product_images(products_dir, output_dir):
     for img_path in products_dir.glob("*.jpg"):
         shutil.copy(img_path, output_dir / "products_reference")
 
-def split_shelf_images(shelves_dir, base_dir, test_size=0.2):
-    """Divise les images d'étagères en ensembles d'entraînement et de validation"""
-    shelves_dir = Path(shelves_dir)
+def split_shelf_images(base_dir, test_size=0.2):
+    """Divides augmented shelf images into training and validation sets."""
+    shelves_dir = Path(base_dir) / "augmented/shelves"  # Use augmented shelves directory
     base_dir = Path(base_dir)
-    all_images = list(shelves_dir.glob("*.jpg"))
+    
+    all_images = list(
+        chain(
+            shelves_dir.glob("*.jpg"),
+            shelves_dir.glob("*.png")
+        )
+    )
     train_imgs, val_imgs = train_test_split(all_images, test_size=test_size, random_state=42)
     
-    # Copier les images dans les dossiers respectifs
+    # Copy images to respective directories
     for img in train_imgs:
         shutil.copy(img, base_dir / "images/train")
     
@@ -115,8 +125,12 @@ def generate_synthetic_annotations(shelf_image_path, product_reference_dir, outp
     
     # Charger les images de produits de référence
     product_reference_dir = Path(product_reference_dir)
-    product_images = list(product_reference_dir.glob("*.jpg"))
-    
+    product_images = list(
+        chain(
+            product_reference_dir.glob("*.jpg"),
+            product_reference_dir.glob("*.png")
+        )
+    )    
     annotations = []
     
     # Simuler 3 à 8 produits Ramy par étagère
@@ -172,44 +186,92 @@ def create_yolo_annotations(image_path, detections, output_path):
             # Écrire l'annotation (class_id x_center y_center width height)
             f.write(f"{det['class_id']} {x_center} {y_center} {w} {h}\n")
 
-def augment_training_data(base_dir, num_augmentations=5):
-    """Augmente les données d'entraînement"""
-    transform = create_augmentation_pipeline()
+def copy_and_augment_product_images(products_dir, base_dir, num_augmentations=5):
+    """Copies and augments product images to a dedicated augmentation directory"""
+    products_dir = Path(products_dir)
     base_dir = Path(base_dir)
-    train_img_dir = base_dir / "images/train"
-    train_label_dir = base_dir / "labels/train"
+    reference_dir = base_dir / "products_reference"
+    augmented_dir = base_dir / "augmented/products"
     
-    # Pour chaque image dans le dossier d'entraînement
-    for img_path in train_img_dir.glob("*.jpg"):
-        # Charger l'image
+    # Create directories if they don't exist
+    os.makedirs(reference_dir, exist_ok=True)
+    os.makedirs(augmented_dir, exist_ok=True)
+    
+    # Create augmentation pipeline for products
+    product_transform = A.Compose([
+        A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.7),
+        A.RandomGamma(gamma_limit=(80, 120), p=0.5),
+        A.GaussNoise(var_limit=(10.0, 30.0), p=0.3),
+        A.Rotate(limit=30, p=0.5),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.1),
+        A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.15, rotate_limit=20, p=0.5),
+        A.OneOf([
+            A.MotionBlur(blur_limit=7, p=0.5),
+            A.GaussianBlur(blur_limit=7, p=0.5),
+        ], p=0.3),
+        A.OneOf([
+            A.ColorJitter(brightness=0.2, contrast=0.2, p=0.5),
+            A.RandomShadow(p=0.5),
+            A.RandomBrightnessContrast(p=0.5),
+        ], p=0.3),
+    ])
+
+    # Process each product image
+    for img_path in chain(products_dir.glob("*.jpg"), products_dir.glob("*.png")):
+        # Copy original to reference directory
+        shutil.copy(img_path, reference_dir)
+        
+        # Load image for augmentation
+        img = safe_read_image(img_path)
+        if img is None:
+            continue
+            
+        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        
+        # Generate augmented versions
+        for aug_idx in range(num_augmentations):
+            augmented = product_transform(image=img_rgb)
+            aug_image = cv2.cvtColor(augmented['image'], cv2.COLOR_RGB2BGR)
+            
+            # Save augmented image to augmented products directory
+            aug_img_path = augmented_dir / f"{img_path.stem}_aug_{aug_idx}.jpg"
+            cv2.imwrite(str(aug_img_path), aug_image)
+
+def augment_shelf_images(base_dir, num_augmentations=5):
+    """Augments shelf images and saves them to a dedicated directory"""
+    base_dir = Path(base_dir)
+    img_dir = base_dir / "Photos rayonnages"
+    augmented_dir = base_dir / "augmented/shelves"
+    
+    # Create augmentation pipeline for shelves
+    transform = A.Compose([
+        A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+        A.RandomGamma(gamma_limit=(80, 120), p=0.5),
+        A.GaussNoise(var_limit=(10.0, 50.0), p=0.3),
+        A.Rotate(limit=15, p=0.5),
+        A.HorizontalFlip(p=0.5),
+        A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1, rotate_limit=10, p=0.5),
+    ])
+    
+    # Process each shelf image
+    for img_path in img_dir.glob("*.jpg"):
         img = safe_read_image(img_path)
         if img is None:
             continue
         
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
-        # Charger les annotations correspondantes
-        label_path = train_label_dir / f"{img_path.stem}.txt"
-        if not label_path.exists():
-            continue
-        
-        with open(label_path, 'r') as f:
-            annotations = f.readlines()
-        
-        # Générer des versions augmentées
+        # Generate augmented versions
         for aug_idx in range(num_augmentations):
-            # Appliquer l'augmentation
             augmented = transform(image=img_rgb)
             aug_image = cv2.cvtColor(augmented['image'], cv2.COLOR_RGB2BGR)
             
-            # Sauvegarder l'image augmentée
-            aug_img_path = train_img_dir / f"{img_path.stem}_aug_{aug_idx}.jpg"
+            # Save augmented image to augmented shelves directory
+            aug_img_path = augmented_dir / f"{img_path.stem}_aug_{aug_idx}.jpg"
             cv2.imwrite(str(aug_img_path), aug_image)
-            
-            # Copier les annotations (simplification - dans un cas réel, il faudrait ajuster les annotations)
-            aug_label_path = train_label_dir / f"{img_path.stem}_aug_{aug_idx}.txt"
-            shutil.copy(label_path, aug_label_path)
 
+            
 def create_data_yaml(base_dir, output_path="data.yaml"):
     """Crée le fichier YAML pour l'entraînement YOLOv5"""
     base_dir = Path(base_dir)
@@ -226,19 +288,23 @@ names: ['ramy_product']
     return output_path
 
 def main(products_dir, shelves_dir):
+    # Setup directory structure
     base_dir = setup_directory_structure()
     
     # Rename files to remove special characters
     rename_files_in_directory(shelves_dir)
     
-    # Copier les images de référence des produits
-    copy_product_images(products_dir, base_dir)
-    
-    # Diviser les images d'étagères
-    split_shelf_images(shelves_dir, base_dir)
+    # Copy and augment product images to dedicated directory
+    copy_and_augment_product_images(products_dir, base_dir)
     
     
-    # Générer des annotations synthétiques pour l'ensemble d'entraînement
+    # Augment shelf images and save to dedicated directory
+    augment_shelf_images(base_dir)
+    
+    # Split shelf images into train/val sets
+    split_shelf_images(base_dir)
+    
+    # Generate synthetic annotations for training set
     base_dir = Path(base_dir)
     train_img_dir = base_dir / "images/train"
     train_label_dir = base_dir / "labels/train"
@@ -248,7 +314,7 @@ def main(products_dir, shelves_dir):
         label_path = train_label_dir / f"{img_path.stem}.txt"
         generate_synthetic_annotations(img_path, product_ref_dir, label_path)
     
-    # Faire de même pour l'ensemble de validation
+    # Generate synthetic annotations for validation set
     val_img_dir = base_dir / "images/val"
     val_label_dir = base_dir / "labels/val"
     
@@ -256,18 +322,18 @@ def main(products_dir, shelves_dir):
         label_path = val_label_dir / f"{img_path.stem}.txt"
         generate_synthetic_annotations(img_path, product_ref_dir, label_path)
     
-    # Augmenter les données d'entraînement
-    augment_training_data(base_dir)
-    
-    # Créer le fichier YAML pour l'entraînement
+    # Create YAML file for training
     yaml_path = create_data_yaml(base_dir)
     
-    print(f"Préparation des données terminée. Fichier YAML créé: {yaml_path}")
-    print(f"Vous pouvez maintenant entraîner le modèle YOLOv5 avec cette configuration.")
+    print(f"Data preparation completed. Directory structure:")
+    print(f"- Original products: {base_dir}/products_reference")
+    print(f"- Augmented products: {base_dir}/augmented/products")
+    print(f"- Augmented shelves: {base_dir}/augmented/shelves")
+    print(f"- Training images: {base_dir}/images/train")
+    print(f"- Validation images: {base_dir}/images/val")
+    print(f"YAML configuration file created: {yaml_path}")
 
 if __name__ == "__main__":
-    # Remplacez ces chemins par vos répertoires réels
     products_dir = "data/Photos produits Ramy"
     shelves_dir = "data/Photos rayonnages"
-    
     main(products_dir, shelves_dir)
