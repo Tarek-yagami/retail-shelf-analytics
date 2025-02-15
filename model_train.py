@@ -4,4 +4,4 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")  # Utilisation d’un modèle de base
 
 # Entraîner sur notre dataset
-model.train(data="data.yaml", epochs=10, imgsz=640, batch=8, device="cpu")  
+model.train(data="data.yaml", epochs=30, imgsz=640, batch=8, device="cpu")  

@@ -25,7 +25,7 @@ model.train(
 
 
 # Charger le meilleur modèle entraîné
-model = YOLO("C:/Users/tarek/runs/detect/train11/weights/best.pt")
+model = YOLO("D:/ESI/2CS/Algiers Up/AUP-2025/detection/train13/weights/best.pt")
 
 
 # Fonction pour tester le modèle sur une image

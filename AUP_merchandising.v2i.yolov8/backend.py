@@ -7,7 +7,7 @@ from PIL import Image
 devices = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Charger le modèle YOLO entraîné
-MODEL_PATH = "C:/Users/tarek/runs/detect/train5/weights/best.pt"
+MODEL_PATH = "D:/ESI/2CS/Algiers Up/AUP-2025/detection/train13/weights/best.pt"
 model = YOLO(MODEL_PATH)
 
 # Liste des catégories
@@ -33,7 +33,7 @@ def predict():
     image = Image.open(image_file)
     
     # Exécuter la détection
-    results = model(image, conf=0.5)
+    results = model(image,save=True, project=os.getcwd(), name="predictions", conf=0.5)
     
     # Analyser les résultats
     detections = results[0].boxes.cls.cpu().numpy()  # Obtenir les classes détectées
