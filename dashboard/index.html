@@ -300,6 +300,20 @@ select, label {
     </div>
     </div>
 
+    <div class="container">
+        <div class="card">
+            <h2>Répartition des ventes par point de vente</h2>
+            <canvas id="chartGlobal"></canvas>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>Répartition des emballages par point de vente</h2>
+            <canvas id="chartEmballages"></canvas>
+        </div>
+    </div>
+
     <div class="container" id="dashboardMerchandiseurs" style="display:none;">
         <div class="card">
             <h2>Tableau des Merchandiseurs</h2>
@@ -463,6 +477,9 @@ function switchDashboard() {
     });
 
     let dateElement = document.getElementById("dateDuJour");
+    afficherBarChart();
+
+    afficherBarChartEmballages();
     
     if (dateElement) {
         dateElement.innerHTML = `<strong text-transform: uppercase;">${today}</strong>`;
@@ -514,6 +531,91 @@ function fermerPhoto() {
     document.getElementById('photoModal').style.display = "none";
 }
 
+    function afficherBarChart() {
+        const ctx = document.getElementById('chartGlobal').getContext('2d');
+
+        let labels = ["Ardis", "Carrefour", "Uno", "Superette Abderaouf"];
+        let ramy = [80, 60, 50, 70];
+        let tazej = [5, 20, 10, 15];
+        let rouiba = [5, 15, 20, 10];
+        let ifruit = [10, 5, 8, 12];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ramy',
+                        data: ramy,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    },
+                    {
+                        label: 'Tazej',
+                        data: tazej,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+                    },
+                    {
+                        label: 'Rouiba',
+                        data: rouiba,
+                        backgroundColor: 'rgba(255, 206, 86, 0.7)'
+                    },
+                    {
+                        label: 'Ifruit',
+                        data: ifruit,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true }
+                }
+            }
+        });
+    }
+
+    function afficherBarChartEmballages() {
+        const ctx = document.getElementById('chartEmballages').getContext('2d');
+
+        let labels = ["Ardis", "Carrefour", "Uno", "Superette Abderaouf"];
+        let carton = [50, 40, 30, 60];
+        let plastique = [30, 35, 25, 20];
+        let canette = [20, 25, 45, 20];
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Carton',
+                        data: carton,
+                        backgroundColor: 'rgba(255, 159, 64, 0.7)'
+                    },
+                    {
+                        label: 'Plastique',
+                        data: plastique,
+                        backgroundColor: 'rgba(153, 102, 255, 0.7)'
+                    },
+                    {
+                        label: 'Canette',
+                        data: canette,
+                        backgroundColor: 'rgba(255, 99, 132, 0.7)'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true }
+                }
+            }
+        });
+    }
 
     </script>
 </body>
