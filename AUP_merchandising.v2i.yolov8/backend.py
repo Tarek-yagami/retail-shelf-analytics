@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from ultralytics import YOLO
 import torch
 import os
@@ -21,7 +21,9 @@ CLASSES = ['7up_plastique', 'arwa_canette', 'arwa_plastique', 'belgaid_plastique
 
 # Initialiser l’application Flask
 app = Flask(__name__)
-
+@app.route('/')
+def home():
+    return send_file('test.html')
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:

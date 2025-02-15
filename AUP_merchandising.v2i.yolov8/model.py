@@ -25,7 +25,7 @@ model.train(
 
 
 # Charger le meilleur modèle entraîné
-model = YOLO("C:/Users/tarek/runs/detect/train5/weights/best.pt")
+model = YOLO("C:/Users/tarek/runs/detect/train11/weights/best.pt")
 
 
 # Fonction pour tester le modèle sur une image
@@ -46,10 +46,7 @@ def detect_products(image_path):
     return product_counts  # Retourner un dictionnaire avec le nombre de produits détectés par catégorie
 
 # Exemple d'utilisation sur une image de test
-resultats = detect_products(r"D:\ESI\2CS\Algiers Up\Roboflow_test\AUP_merchandising.v2i.yolov8\valid\images\image_test.jpg")
+resultats = detect_products(r"D:\ESI\2CS\Algiers Up\AUP-2025\AUP_merchandising.v2i.yolov8\valid\images\WhatsApp-Image-2025-02-08-a-17_21_10_de969159_jpg.rf.a13e65551ebf0807ae37e28b081441f4.jpg")
 print(resultats)  # Afficher le nombre de produits par catégorie
 
 
-
-# Exemple d'utilisation sur une image de test
-detect_products(r"D:\ESI\2CS\Algiers Up\Roboflow_test\AUP_merchandising.v2i.yolov8\valid\images\WhatsApp-Image-2025-02-05-a-12_17_26_f27f3f0b_jpg.rf.aeb030e08a547283938fef054f7ae657.jpg")
