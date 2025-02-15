@@ -453,16 +453,16 @@ function switchDashboard() {
     photosContainer.style.display = "none";
 }
 
-
         function afficherPhotos(nom, pointsDeVente) {
         document.getElementById('titrePhotos').innerText = `Photos de ${nom} \n++Points de Vente: ${pointsDeVente}`;
         let photosGrid = document.getElementById('photosGrid');
         photosGrid.innerHTML = '';
         
         let photos = [
-            'photos/pdv_pic_571111_1736332765032_98552.png',
-            'photos/pdv_pic_580891_1736067034294_98552.png',
-            'photos/pdv_pic_581791_1736609109474_98552.png'
+            'photos/1.jpg',
+            'photos/2.png',
+            'photos/3.png',
+            'photos/4.png'
         ];
         
         photosGrid.style.display = 'flex';
@@ -506,9 +506,10 @@ function afficherPhotos(nom, pointsDeVente) {
     photosGrid.innerHTML = '';
 
     let photos = [
-        'photos/pdv_pic_571111_1736332765032_98552.png',
-        'photos/pdv_pic_580891_1736067034294_98552.png',
-        'photos/pdv_pic_581791_1736609109474_98552.png'
+        'photos/1.jpg',
+        'photos/2.png',
+        'photos/3.png',
+        'photos/4.png'
     ];
 
     photos.forEach(photo => {
