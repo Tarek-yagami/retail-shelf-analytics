@@ -185,7 +185,7 @@ select, label {
     
     <div class="container">
         <div class="card">
-        <h2>Tableau des ventes</h2>
+        <h2>Répartition des emballages</h2>
         
         <table border="1">
             <tr>
@@ -420,25 +420,39 @@ function generateRandomColors(nbColors) {
 }
 
 function switchDashboard() {
-            const prodDash = document.getElementById('dashboardProduits');
-            const merchDash = document.getElementById('dashboardMerchandiseurs');
-            const switchButton = document.getElementById('switchButton');
-            const venteTable = document.querySelector('.container:nth-of-type(2)'); 
-            
-            if (prodDash.style.display === "none") {
-                prodDash.style.display = "block";
-                merchDash.style.display = "none";
-                venteTable.style.display = "block"; 
-                switchButton.innerText = "Consulter les merchandiseurs";
-            } else {
-                prodDash.style.display = "none";
-                merchDash.style.display = "block";
-                venteTable.style.display = "none"; 
-                switchButton.innerText = "Consulter les points de vente";
-            }
+    const prodDash = document.getElementById('dashboardProduits');
+    const merchDash = document.getElementById('dashboardMerchandiseurs');
+    const switchButton = document.getElementById('switchButton');
+    const venteTable = document.querySelector('.container:nth-of-type(2)'); 
+    const chartGlobal = document.getElementById('chartGlobal').parentNode;
+    const chartEmballages = document.getElementById('chartEmballages').parentNode;
 
-            photosContainer.style.display = "none";
-        }
+    if (prodDash.style.display === "none") {
+        // Afficher les ventes
+        prodDash.style.display = "block";
+        merchDash.style.display = "none";
+        venteTable.style.display = "block"; 
+        switchButton.innerText = "Consulter les merchandiseurs";
+
+        // Réafficher les graphiques
+        chartGlobal.style.display = "block";
+        chartEmballages.style.display = "block";
+
+    } else {
+        // Afficher les merchandiseurs
+        prodDash.style.display = "none";
+        merchDash.style.display = "block";
+        venteTable.style.display = "none"; 
+        switchButton.innerText = "Consulter les points de vente";
+
+        // Cacher les graphiques
+        chartGlobal.style.display = "none";
+        chartEmballages.style.display = "none";
+    }
+
+    photosContainer.style.display = "none";
+}
+
 
         function afficherPhotos(nom, pointsDeVente) {
         document.getElementById('titrePhotos').innerText = `Photos de ${nom} \n++Points de Vente: ${pointsDeVente}`;
