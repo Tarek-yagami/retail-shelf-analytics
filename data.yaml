@@ -1,6 +1,0 @@
-
-train: D:\ESI\2CS\Algiers Up\AUP-2025\data\images\train
-val: D:\ESI\2CS\Algiers Up\AUP-2025\data\images\val
-nc: 1
-names: ['ramy_product']
-    
