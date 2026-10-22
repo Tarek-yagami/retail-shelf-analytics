@@ -1,0 +1,10 @@
+# Where the raw data lives and how the annotated photos are split. Paths are relative to the repo root.
+roboflow_export_dir: data/raw/roboflow_export
+shelf_photos_dir: data/raw/shelf_photos
+output_dir: data/processed/annotated
+
+# The Roboflow "valid" photos are the test set: the hackathon model never trained on them,
+# so it can be scored on the same photos as every new model.
+test_source_split: valid
+val_fraction: 0.2
+seed: 42

@@ -1,0 +1,38 @@
+[project]
+name = "retail-shelf-analytics"
+version = "0.1.0"
+description = "Detect beverage products on store shelves and measure brand shelf share."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pillow",
+    "pyyaml",
+    "scikit-learn",
+    "torch",
+    "torchvision",
+    "typer",
+    "ultralytics",
+]
+
+[project.scripts]
+shelf = "retail_shelf_analytics.cli:app"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
