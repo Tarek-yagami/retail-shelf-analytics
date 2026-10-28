@@ -132,6 +132,15 @@ def assign_splits(
     return splits
 
 
+def box_coordinates(values: list[str]) -> str:
+    """Return 'x_center y_center width height' for a YOLO box, or the bounding box of a polygon's points."""
+    if len(values) == 4:
+        return " ".join(values)
+    xs, ys = [float(v) for v in values[0::2]], [float(v) for v in values[1::2]]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    return f"{(x0 + x1) / 2:.6f} {(y0 + y1) / 2:.6f} {x1 - x0:.6f} {y1 - y0:.6f}"
+
+
 def write_dataset(
     splits: dict[AnnotatedPhoto, str],
     remap: dict[int, int],
@@ -148,7 +157,7 @@ def write_dataset(
     manifest = []
     for photo, split in sorted(splits.items(), key=lambda item: item[0].slug):
         rows = [line.split() for line in photo.label_file.read_text().splitlines() if line.strip()]
-        labels = [" ".join([str(remap[int(row[0])]), *row[1:]]) for row in rows]
+        labels = [f"{remap[int(row[0])]} {box_coordinates(row[1:])}" for row in rows]
         (output_dir / "labels" / split / f"{photo.slug}.txt").write_text("\n".join(labels) + "\n")
         image_name = f"{photo.slug}{photo.photo.suffix.lower()}"
         load_upright(photo.photo).save(output_dir / "images" / split / image_name, quality=95)

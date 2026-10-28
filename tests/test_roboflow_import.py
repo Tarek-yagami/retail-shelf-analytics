@@ -10,6 +10,7 @@ from retail_shelf_analytics.config import ClassConfig, DatasetConfig, ProductLab
 from retail_shelf_analytics.data.roboflow_import import (
     ROBOFLOW_SIZE,
     assign_splits,
+    box_coordinates,
     collect_annotated_photos,
     export_photo_key,
     import_roboflow_export,
@@ -86,6 +87,11 @@ class RoboflowImportTest(unittest.TestCase):
         uploaded = Path("WhatsApp Image 2025-02-13 à 22.40.29_0161e264.jpg")
         exported = Path("WhatsApp-Image-2025-02-13-a-22_40_29_0161e264_jpg.rf.5d1c.jpg")
         self.assertEqual(raw_photo_key(uploaded), export_photo_key(exported))
+
+    def test_polygon_label_becomes_its_bounding_box(self) -> None:
+        # Roboflow exports a box drawn with the polygon tool as "class x1 y1 x2 y2 ...".
+        self.assertEqual(box_coordinates("0.2 0.1 0.4 0.1 0.4 0.5 0.2 0.5".split()), "0.300000 0.300000 0.200000 0.400000")
+        self.assertEqual(box_coordinates("0.5 0.5 0.1 0.2".split()), "0.5 0.5 0.1 0.2")
 
     def test_missing_test_photo_is_reported(self) -> None:
         self.export.add("WhatsApp Image 2025-02-04 a 14.09.26_aaaa.jpg", "train", seed=1)
