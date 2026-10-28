@@ -3,38 +3,54 @@
 target_brand: ramy
 
 labels:
+  - {name: 7up_canette, brand: 7up, packaging: can}
   - {name: 7up_plastique, brand: 7up, packaging: bottle}
+  - {name: amazone_plastique, brand: amazone, packaging: bottle}
   - {name: arwa_canette, brand: arwa, packaging: can}
   - {name: arwa_plastique, brand: arwa, packaging: bottle}
   - {name: belgaid_plastique, brand: belgaid, packaging: bottle}
   - {name: bifa_carton, brand: bifa, packaging: carton}
+  - {name: bona_plastique, brand: bona, packaging: bottle}
+  - {name: bouglez_carton, brand: bouglez, packaging: carton}
   - {name: candia_carton, brand: candia, packaging: carton}
+  - {name: cocacola_canette, brand: cocacola, packaging: can}
+  - {name: cocacola_plastique, brand: cocacola, packaging: bottle}
+  - {name: el_arabi_canette, brand: el_arabi, packaging: can}
   - {name: el_arabi_plastique, brand: el_arabi, packaging: bottle}
   - {name: fanta_plastique, brand: fanta, packaging: bottle}
+  - {name: fruit_dor_plastique, brand: fruit_dor, packaging: bottle}
   - {name: hamoud_plastique, brand: hamoud, packaging: bottle}
+  - {name: ifri-, brand: ifri, packaging: null}
   - {name: ifri_plastique, brand: ifri, packaging: bottle}
   - {name: ifruit, brand: ifruit, packaging: null}
   - {name: ifruit_carton, brand: ifruit, packaging: carton}
   - {name: ifruit_plastique, brand: ifruit, packaging: bottle}
   - {name: metidja_plastique, brand: metidja, packaging: bottle}
+  - {name: miranda_canette, brand: miranda, packaging: can}
   - {name: miranda_plastique, brand: miranda, packaging: bottle}
   - {name: ngaous_carton, brand: ngaous, packaging: carton}
   - {name: ngaous_plastique, brand: ngaous, packaging: bottle}
   - {name: obei_carton, brand: obei, packaging: carton}
   - {name: orangina_plastique, brand: orangina, packaging: bottle}
+  - {name: pepsi_canette, brand: pepsi, packaging: can}
   - {name: pepsi_plastique, brand: pepsi, packaging: bottle}
   - {name: ramy_canette, brand: ramy, packaging: can}
   - {name: ramy_carton, brand: ramy, packaging: carton}
   - {name: ramy_plastique, brand: ramy, packaging: bottle}
+  - {name: rani_canette, brand: rani, packaging: can}
   - {name: rani_plastique, brand: rani, packaging: bottle}
   - {name: rouiba_carton, brand: rouiba, packaging: carton}
   - {name: rouiba_plastique, brand: rouiba, packaging: bottle}
+  - {name: schweppes_plastique, brand: schweppes, packaging: bottle}
   - {name: skander_plastique, brand: skander, packaging: bottle}
   - {name: sommam_carton, brand: sommam, packaging: carton}
   - {name: sprite_canette, brand: sprite, packaging: can}
   - {name: sprite_plastique, brand: sprite, packaging: bottle}
+  - {name: star_canette, brand: star, packaging: can}
   - {name: tassilo_carton, brand: tassilo, packaging: carton}
   - {name: tastetea_plastique, brand: tastetea, packaging: bottle}
+  - {name: tazej_carton, brand: tazej, packaging: carton}
   - {name: tazej_plastique, brand: tazej, packaging: bottle}
   - {name: tchina_plastique, brand: tchina, packaging: bottle}
   - {name: toudja_carton, brand: toudja, packaging: carton}
+  - {name: tropica_carton, brand: tropica, packaging: carton}

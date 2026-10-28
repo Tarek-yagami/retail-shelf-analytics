@@ -1,0 +1,18 @@
+# The fixed test set: the Roboflow v2 "valid" photos, which the hackathon model never trained on.
+# Never train or tune on these. One original photo file name per line.
+WhatsApp Image 2025-02-05 a 10.01.50_67c8ac84.jpg
+WhatsApp Image 2025-02-05 a 11.11.58_ef2e5180.jpg
+WhatsApp Image 2025-02-05 a 12.17.26_f27f3f0b.jpg
+WhatsApp Image 2025-02-06 a 10.41.07_4a29d60f.jpg
+WhatsApp Image 2025-02-06 a 11.29.46_69ab704b.jpg
+WhatsApp Image 2025-02-08 a 17.21.10_de969159.jpg
+WhatsApp Image 2025-02-08 a 21.14.14_783cf5a0.jpg
+WhatsApp Image 2025-02-09 a 13.58.34_53c6b10b.jpg
+WhatsApp Image 2025-02-10 a 11.14.26_b4db67b6.jpg
+WhatsApp Image 2025-02-11 a 12.48.29_a325ff46.jpg
+WhatsApp Image 2025-02-11 a 13.41.24_74bfd9d4.jpg
+WhatsApp Image 2025-02-11 a 16.28.45_77359b40.jpg
+WhatsApp Image 2025-02-11 a 16.28.46_93e2d83a.jpg
+pdv_pic_574231_1735987211874_98552.png
+pdv_pic_586171_1736416214865_98552.png
+pdv_pic_603801_1739181463287_98552.png

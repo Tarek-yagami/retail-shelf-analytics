@@ -6,7 +6,7 @@ import numpy as np
 import yaml
 from PIL import Image
 
-from retail_shelf_analytics.config import ClassConfig, DatasetConfig, ProductLabel
+from retail_shelf_analytics.config import ClassConfig, DatasetConfig, ProductLabel, RoboflowSource
 from retail_shelf_analytics.data.roboflow_import import (
     ROBOFLOW_SIZE,
     assign_splits,
@@ -82,19 +82,32 @@ class RoboflowImportTest(unittest.TestCase):
         exported = Path("WhatsApp-Image-2025-02-04-a-14_09_26_1439cedb_jpg.rf.ce1a51db7c.jpg")
         self.assertEqual(raw_photo_key(raw), export_photo_key(exported))
 
+    def test_accented_roboflow_name_matches_its_export_name(self) -> None:
+        uploaded = Path("WhatsApp Image 2025-02-13 à 22.40.29_0161e264.jpg")
+        exported = Path("WhatsApp-Image-2025-02-13-a-22_40_29_0161e264_jpg.rf.5d1c.jpg")
+        self.assertEqual(raw_photo_key(uploaded), export_photo_key(exported))
+
+    def test_missing_test_photo_is_reported(self) -> None:
+        self.export.add("WhatsApp Image 2025-02-04 a 14.09.26_aaaa.jpg", "train", seed=1)
+        photos, _ = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
+        with self.assertRaisesRegex(ValueError, "gone.jpg"):
+            assign_splits(photos, frozenset({"gone.jpg"}), val_fraction=0.3, seed=0)
+
     def test_picks_the_unaugmented_copy_even_for_exif_rotated_photos(self) -> None:
         self.export.add("WhatsApp Image 2025-02-04 a 14.09.26_aaaa.jpg", "train", seed=1)
         self.export.add("WhatsApp Image 2025-02-05 a 10.00.00_bbbb.jpg", "train", seed=2, orientation=ROTATED_90_CW)
-        photos = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
+        photos, _ = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
         self.assertEqual(len(photos), 2)
         for photo in photos:
             self.assertIn(".rf.copy1", photo.label_file.name)
 
-    def test_missing_original_photo_is_reported(self) -> None:
+    def test_photo_without_original_is_skipped_and_reported(self) -> None:
         self.export.add("WhatsApp Image 2025-02-04 a 14.09.26_aaaa.jpg", "train", seed=1)
+        self.export.add("WhatsApp Image 2025-02-05 a 10.00.00_bbbb.jpg", "train", seed=2)
         (self.export.photos_dir / "WhatsApp Image 2025-02-04 a 14.09.26_aaaa.jpg").unlink()
-        with self.assertRaisesRegex(FileNotFoundError, "no original photo"):
-            collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
+        photos, without_original = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
+        self.assertEqual([p.photo.name for p in photos], ["WhatsApp Image 2025-02-05 a 10.00.00_bbbb.jpg"])
+        self.assertEqual(without_original, ["WhatsApp-Image-2025-02-04-a-14_09_26_aaaa_jpg"])
 
     def test_photos_of_one_store_stay_in_one_split(self) -> None:
         for i in range(6):
@@ -102,8 +115,8 @@ class RoboflowImportTest(unittest.TestCase):
         for i in range(6):
             self.export.add(f"WhatsApp Image 2025-02-0{i} a 10.00.00_{i}.jpg", "train", seed=20 + i)
         self.export.add("pdv_pic_2000_0_98552.jpg", "valid", seed=30)
-        photos = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
-        splits = assign_splits(photos, test_source_split="valid", val_fraction=0.3, seed=0)
+        photos, _ = collect_annotated_photos(self.export.export_dir, self.export.photos_dir)
+        splits = assign_splits(photos, frozenset({"pdv_pic_2000_0_98552.jpg"}), val_fraction=0.3, seed=0)
         store_splits = {split for photo, split in splits.items() if photo.group == "store-1000"}
         self.assertEqual(len(store_splits), 1)
         self.assertEqual([p.group for p, s in splits.items() if s == "test"], ["store-2000"])
@@ -114,7 +127,15 @@ class RoboflowImportTest(unittest.TestCase):
         for i in range(4):
             self.export.add(f"WhatsApp Image 2025-02-0{i} a 11.00.00_{i}.jpg", "train", seed=40 + i)
         output_dir = self.root / "out"
-        dataset = DatasetConfig(self.export.export_dir, self.export.photos_dir, output_dir, "valid", 0.25, 0)
+        dataset = DatasetConfig(
+            roboflow=RoboflowSource("workspace", "project", 1),
+            roboflow_export_dir=self.export.export_dir,
+            shelf_photos_dir=self.export.photos_dir,
+            output_dir=output_dir,
+            test_photos=frozenset({"WhatsApp Image 2025-02-05 a 10.00.00_bbbb.jpg"}),
+            val_fraction=0.25,
+            seed=0,
+        )
         import_roboflow_export(dataset, CLASSES)
 
         test_image = output_dir / "images" / "test" / "whatsapp-image-2025-02-05-a-10-00-00-bbbb.jpg"

@@ -21,7 +21,7 @@ We hand-labeled about 13,000 product boxes across 35 brand and packaging classes
 2. **Classifier.** Name each cropped product at three levels: Ramy or not, brand, exact product. Product photos alone are enough to train this, so rare brands get data cheaply, and it can answer "unknown" instead of guessing.
 3. **Shelf share.** Count products per brand on each photo.
 
-Everything is scored on a fixed test set of 16 photos the hackathon model never trained on, so the before and after numbers are comparable.
+Everything is scored on a fixed test set of 16 photos the hackathon model never trained on ([`configs/test_photos.txt`](configs/test_photos.txt)), so the before and after numbers are comparable.
 
 ## Data
 
@@ -32,11 +32,14 @@ The shelf photos and product images were provided for the hackathon and are not 
 Requires [uv](https://docs.astral.sh/uv/) and Python 3.12. PyTorch is installed with CUDA 12.8 support.
 
 ```
-uv sync                        # install the environment
-uv run pytest                  # run the tests
-uv run shelf import-roboflow   # rebuild data/processed from data/raw
-uv run shelf audit             # write reports/data_audit.md
+uv sync                          # install the environment
+uv run pytest                    # run the tests
+uv run shelf download-roboflow   # download the labeled photos into data/raw (needs access to the Roboflow project)
+uv run shelf import-roboflow     # rebuild data/processed from data/raw
+uv run shelf audit               # write reports/data_audit.md
 ```
+
+Downloading needs `ROBOFLOW_API_KEY=<private API key>` in a `.env` file at the repo root.
 
 ## Repository layout
 

@@ -7,6 +7,7 @@ Only one copy per photo is unaugmented; its normalized boxes also fit the full-r
 import csv
 import re
 import shutil
+import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -29,7 +30,6 @@ SPLITS = ("train", "val", "test")
 class AnnotatedPhoto:
     photo: Path
     label_file: Path
-    source_split: str
     group: str  # photos of the same store share a group and land in the same split
 
     @property
@@ -38,7 +38,9 @@ class AnnotatedPhoto:
 
 
 def _key(name: str) -> str:
-    return re.sub(r"[^0-9a-z]", "", name.lower())
+    # Roboflow keeps "à" in uploaded names ("2025-02-13 à 22.40") but writes "a" in export names.
+    ascii_name = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+    return re.sub(r"[^0-9a-z]", "", ascii_name.lower())
 
 
 def raw_photo_key(path: Path) -> str:
@@ -76,27 +78,28 @@ def find_unaugmented_copy(copies: list[Path], photo: Path) -> Path:
     return best
 
 
-def collect_annotated_photos(export_dir: Path, photos_dir: Path) -> list[AnnotatedPhoto]:
+def collect_annotated_photos(export_dir: Path, photos_dir: Path) -> tuple[list[AnnotatedPhoto], list[str]]:
+    """Return the annotated photos and the export names of those whose original is missing."""
     raw_photos = {raw_photo_key(p): p for p in photos_dir.iterdir() if p.is_file()}
-    annotated = []
+    annotated, without_original = [], []
     for split_dir in sorted(d for d in export_dir.iterdir() if (d / "images").is_dir()):
         copies_by_key = defaultdict(list)
         for image in (split_dir / "images").iterdir():
             copies_by_key[export_photo_key(image)].append(image)
         for key, copies in sorted(copies_by_key.items()):
             if key not in raw_photos:
-                raise FileNotFoundError(f"{copies[0].name} has no original photo in {photos_dir}")
+                without_original.append(copies[0].name.split(".rf.")[0])
+                continue
             photo = raw_photos[key]
             copy = find_unaugmented_copy(copies, photo)
             annotated.append(
                 AnnotatedPhoto(
                     photo=photo,
                     label_file=split_dir / "labels" / f"{copy.stem}.txt",
-                    source_split=split_dir.name,
                     group=photo_group(photo),
                 )
             )
-    return annotated
+    return annotated, without_original
 
 
 def export_label_remap(export_dir: Path, classes: ClassConfig) -> dict[int, int]:
@@ -111,11 +114,16 @@ def export_label_remap(export_dir: Path, classes: ClassConfig) -> dict[int, int]
 
 def assign_splits(
     photos: list[AnnotatedPhoto],
-    test_source_split: str,
+    test_photos: frozenset[str],
     val_fraction: float,
     seed: int,
 ) -> dict[AnnotatedPhoto, str]:
-    splits = {p: "test" for p in photos if p.source_split == test_source_split}
+    test_keys = {raw_photo_key(Path(name)) for name in test_photos}
+    splits = {p: "test" for p in photos if raw_photo_key(p.photo) in test_keys}
+    if len(splits) != len(test_keys):
+        found = {raw_photo_key(p.photo) for p in splits}
+        missing = sorted(name for name in test_photos if raw_photo_key(Path(name)) not in found)
+        raise ValueError(f"Test photos missing from the export: {missing}")
     rest = [p for p in photos if p not in splits]
     splitter = GroupShuffleSplit(n_splits=1, test_size=val_fraction, random_state=seed)
     train_idx, val_idx = next(splitter.split(rest, groups=[p.group for p in rest]))
@@ -161,9 +169,13 @@ def write_dataset(
     (output_dir / "data.yaml").write_text(yaml.safe_dump(data_yaml, sort_keys=False), encoding="utf-8")
 
 
-def import_roboflow_export(dataset: DatasetConfig, classes: ClassConfig) -> dict[AnnotatedPhoto, str]:
+def import_roboflow_export(
+    dataset: DatasetConfig,
+    classes: ClassConfig,
+) -> tuple[dict[AnnotatedPhoto, str], list[str]]:
+    """Write the dataset and return each photo's split, plus the photos skipped for lack of an original."""
     remap = export_label_remap(dataset.roboflow_export_dir, classes)
-    photos = collect_annotated_photos(dataset.roboflow_export_dir, dataset.shelf_photos_dir)
-    splits = assign_splits(photos, dataset.test_source_split, dataset.val_fraction, dataset.seed)
+    photos, without_original = collect_annotated_photos(dataset.roboflow_export_dir, dataset.shelf_photos_dir)
+    splits = assign_splits(photos, dataset.test_photos, dataset.val_fraction, dataset.seed)
     write_dataset(splits, remap, classes, dataset.output_dir)
-    return splits
+    return splits, without_original
